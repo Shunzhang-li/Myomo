@@ -24,8 +24,8 @@ class serial_logger:
         self.dict = {
             'Device Type': 0,
             'Time': 1,
-            'Bicep': 2,
-            'Tricep': 3,
+            'Tricep': 2,
+            'Bicep': 3,
             'Mode': 4,
             'Configured duel mode': 5,
             'Bicep Effort':6,
@@ -39,26 +39,46 @@ class serial_logger:
             'Joint Position': 14,
             'Battery Current': 15
         }
-
+        self.ts = 0.2
     #TODO: have connecting to serial from a file
 
 
     def start_log(self):
         Elbow_name = "./Elbow"+time.strftime("%m%d%Y-%H%M%S")+".csv"
-        Hand_name = "./Hand"+time.strftime("%m%d%Y-%H%M%S")+".csv"
+        #Hand_name = "./Hand"+time.strftime("%m%d%Y-%H%M%S")+".csv"
+        last_time = 0
         while True:
             try:
+                init_time = time.time()
+                #print("interval: " + str(init_time - last_time))
+                last_time = init_time
                 line = self.ser.readline().decode("utf-8")
                 line_as_list = line.split(',')
-                with open (Elbow_name, 'a') as f1, open (Hand_name, 'a') as f2:
+                ct = time.time()
+                line_as_list.append(ct)
+                with open (Elbow_name, 'a') as f1:#, open (Hand_name, 'a') as f2:
                     writer_e = csv.writer(f1,quoting=csv.QUOTE_ALL,escapechar = '\n')
-                    writer_h = csv.writer(f2,quoting=csv.QUOTE_ALL,escapechar = '\n')
+                    #writer_h = csv.writer(f2,quoting=csv.QUOTE_ALL,escapechar = '\n')
                     if line_as_list[0] == '\x00E':
                         writer_e.writerow(line_as_list)
-                    else:
-                        writer_h.writerow(line_as_list)
+                        print("Bi th: " + line_as_list[8]+" Tri th: "+line_as_list[9])
 
+                        #print(str(ct)+ " "+ line_as_list[14])
+
+                    #else:
+                    #    writer_h.writerow(line_as_list)
+                
+
+                f1.close()
+                c_time = time.time() - init_time
+                if self.ts - c_time > 0:
+                    time.sleep(self.ts - c_time)
+                #f2.close()
+                #time.sleep(0.1)
             except KeyboardInterrupt:
+                f1.close()
+                #f2.close()
+                self.tear_down()
                 print('\nlog finished\n')
                 break
 
@@ -70,7 +90,7 @@ class serial_logger:
 def main():
     logger = serial_logger()
     logger.start_log()
-    logger.tear_down()
+    
 
 if __name__ == '__main__':
     main()
