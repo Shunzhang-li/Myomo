@@ -32,7 +32,7 @@ try:
                 if ts - ct > 0:
                     time.sleep(ts - ct)
                 continue
-            m = c%20
+            m = c%55+9
             s.send(bytes('$ o '+ str(1+m)+'\n','UTF-8'))    
             s.send(bytes('$ p '+str(1+m)+'\n','UTF-8'))
             getme = data.split('\n')
