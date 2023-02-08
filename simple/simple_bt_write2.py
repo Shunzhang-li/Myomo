@@ -12,36 +12,41 @@ size = 1024
 c = 0
 ts = 1
 last_time = 0
-#s.listen(backlog)
+s.send(bytes('$ 0 3\n','UTF-8'))
+data = s.recv(size)
+
+
 try:
-#    client, address = s.accept()
     while c > -1:
         c =c + 1
+        print("c: "+str(c))
         init_time = time.time()
         #print("interval: " + str(init_time - last_time))
         last_time = init_time
-        s.send(bytes('$ y\n','UTF-8'))
+        s.send(bytes('$\x1bz\n','UTF-8'))
+        #s.send(bytes('\n','UTF-8'))
+        
         data = s.recv(size)
         if data:
             c_time = time.time()
             data = data.decode("utf-8")
             #print("len: " + str(len(data)))
             print("data: "+data)
-            if(data[0] != '$'):
-                ct = time.time() - init_time
-                if ts - ct > 0:
-                    time.sleep(ts - ct)
-                continue
-            m = c%55+9
-            s.send(bytes('$ o '+ str(1+m)+'\n','UTF-8'))    
-            s.send(bytes('$ p '+str(1+m)+'\n','UTF-8'))
-            getme = data.split('\n')
-            getme = getme[0].split(' ')
-            if (len(getme) < 3):
-                ct = time.time() - init_time
-                if ts - ct > 0:
-                    time.sleep(ts - ct)
-                continue
+            #if(data[0] != '$'):
+            #    ct = time.time() - init_time
+            #    if ts - ct > 0:
+            #        time.sleep(ts - ct)
+            #    continue
+            #m = c%55+9
+            #s.send(bytes('$ o '+ str(1+m)+'\n','UTF-8'))    
+            #s.send(bytes('$ p '+str(1+m)+'\n','UTF-8'))
+            #getme = data.split('\n')
+            #getme = getme[0].split(' ')
+            #if (len(getme) < 3):
+                #ct = time.time() - init_time
+                #if ts - ct > 0:
+                    #time.sleep(ts - ct)
+                #continue
         #s.send(bytes('$ y\n','UTF-8'))
         #data2 = s.recv(size)
         #if data2:

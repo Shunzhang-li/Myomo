@@ -71,7 +71,8 @@ class dynamic_threshold_controller:
         while True:
             try:
                 #TODO Update only a few 0.1 s
-                #os.system('clear')
+                #TODO read system dual mode state once
+                
                 line = self.ser.readline().decode("utf-8")
                 line_as_list = line.split(',')
                 print("line: "+str(line))
@@ -88,7 +89,7 @@ class dynamic_threshold_controller:
                 print("Bi: "+line_as_list[i_Bi_th] +" Tri: "+ line_as_list[i_tri_th])
                 new_tri_th = init_tri_th - E_th
                 new_bi_th = init_bi_th + E_th
-                #print("before send JA: "+line_as_list[i_JA]+" new Bi "+str(new_bi_th)+" new Tri "+str(new_tri_th))
+                #TODO Update command
                 bi_msg = "$ o " + str(new_bi_th) 
                 tri_msg = "$ p " + str(new_tri_th) 
                 #self.socket.send(bytes(bi_msg+'\n', 'UTF-8'))

@@ -7,20 +7,8 @@ import csv
 class serial_logger:
 
     def __init__(self):
-        self.ser = serial.Serial(port = '/dev/ttyUSB0',
-                    baudrate = 115200,
-                    bytesize = serial.EIGHTBITS,
-                    parity = serial.PARITY_NONE,
-                    stopbits=serial.STOPBITS_ONE,
-                    timeout = 0.5)
-        
-        if self.ser.is_open==True:
-            print("\nSerial open. Configuration:\n")
-            print(self.ser, "\n") #print serial parameters
-        else:
-            print("\n Serial open failed.\n")
-
         #TODO: read from file
+        self.ser = -1
         self.dict = {
             'Device Type': 0,
             'Time': 1,
@@ -39,11 +27,25 @@ class serial_logger:
             'Joint Position': 14,
             'Battery Current': 15
         }
-        self.ts = 0.2
+        self.ts = 0.1
     #TODO: have connecting to serial from a file
 
+    def start_up(self):
+        self.ser = serial.Serial(port = '/dev/ttyUSB0',
+                    baudrate = 115200,
+                    bytesize = serial.EIGHTBITS,
+                    parity = serial.PARITY_NONE,
+                    stopbits=serial.STOPBITS_ONE,
+                    timeout = 0.5)
+        
+        if self.ser.is_open==True:
+            print("\nSerial open. Configuration:\n")
+            print(self.ser, "\n") #print serial parameters
+        else:
+            print("\n Serial open failed.\n")
 
     def start_log(self):
+        self.start_up()
         Elbow_name = "./Elbow"+time.strftime("%m%d%Y-%H%M%S")+".csv"
         #Hand_name = "./Hand"+time.strftime("%m%d%Y-%H%M%S")+".csv"
         last_time = 0
@@ -60,14 +62,16 @@ class serial_logger:
                     writer_e = csv.writer(f1,quoting=csv.QUOTE_ALL,escapechar = '\n')
                     #writer_h = csv.writer(f2,quoting=csv.QUOTE_ALL,escapechar = '\n')
                     if line_as_list[0] == '\x00E':
+                        line_as_list[0] = "E"    
+                        print(line)
                         writer_e.writerow(line_as_list)
-                        print("Bi th: " + line_as_list[8]+" Tri th: "+line_as_list[9])
+                        #print("Bi th: " + line_as_list[8]+" Tri th: "+line_as_list[9])
 
                         #print(str(ct)+ " "+ line_as_list[14])
 
                     #else:
                     #    writer_h.writerow(line_as_list)
-                
+            
 
                 f1.close()
                 c_time = time.time() - init_time
@@ -82,6 +86,33 @@ class serial_logger:
                 print('\nlog finished\n')
                 break
 
+    def timed_log(self,ltime):
+        self.start_up()
+        init_time = time.time()
+        c_time = init_time
+        Elbow_name = "./TimedLog"+time.strftime("%m%d%Y-%H%M%S")+".csv"
+        while c_time - init_time < ltime:
+            try:
+                #print("interval: " + str(init_time - last_time))
+                last_time = init_time
+                line = self.ser.readline().decode("utf-8")
+                line_as_list = line.split(',')
+                #if line_as_list[0] == '\x00E':
+                    #print(line)
+                ct = time.time()
+                line_as_list.append(ct)
+                with open (Elbow_name, 'a') as f1:#, open (Hand_name, 'a') as f2:
+                    writer_e = csv.writer(f1,quoting=csv.QUOTE_ALL,escapechar = '\n')
+                    if line_as_list[0] == '\x00E':
+                        line_as_list[0] = "E"
+                        writer_e.writerow(line_as_list)
+                f1.close()
+                c_time = time.time()
+            except:
+                f1.close()
+                self.tear_down()
+                print('\nlog error\n')
+                break
 
 
     def tear_down(self):
@@ -89,8 +120,9 @@ class serial_logger:
 
 def main():
     logger = serial_logger()
-    logger.start_log()
-    
+    #logger.start_log()
+    logger.timed_log(5)
+    #print(emg)
 
 if __name__ == '__main__':
     main()
